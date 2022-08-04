@@ -18,7 +18,7 @@ pub fn rect_color(opt Color) element.Element {
 	rect.set_attribute('height', opt.height.str())
 	rect.set_attribute('width', opt.width.str())
 	rect.set_attribute('clip-path', 'url(#clip-path-$opt.name)')
-	rect.set_attribute('color', opt.color.str())
+	rect.set_attribute('fill', opt.color.str())
 
 	return rect
 }
