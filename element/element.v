@@ -16,7 +16,7 @@ pub fn new_element(name string) Element {
 }
 
 pub fn (mut el Element) set_attribute(attr string, value string) {
-	el.attr[attr] = value
+	el.attr[attr] = '"$value"'
 }
 
 pub fn (mut el Element) append_child(child Element) {

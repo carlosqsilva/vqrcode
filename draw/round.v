@@ -59,8 +59,8 @@ fn corner_round(x int, y int, size int, rotation f32) element.Element {
 	cx := x + size / f32(2)
 	cy := y + size / f32(2)
 	mut el := element.new_element('path')
-	el.set_attribute('d', '"M $x ${y}v ${size}h ${size}v ${-size / f32(2)}a ${size / f32(2)} ${size / f32(2)}, 0, 0, 0, ${-size / f32(2)} ${-size / f32(2)}"')
-	el.set_attribute('transform', '"rotate(${(180 * rotation) / math.pi},$cx,$cy)"')
+	el.set_attribute('d', 'M $x ${y}v ${size}h ${size}v ${-size / f32(2)}a ${size / f32(2)} ${size / f32(2)}, 0, 0, 0, ${-size / f32(2)} ${-size / f32(2)}')
+	el.set_attribute('transform', 'rotate(${(180 * rotation) / math.pi},$cx,$cy)')
 	return el
 }
 
@@ -68,7 +68,7 @@ fn side_round(x int, y int, size int, rotation f32) element.Element {
 	cx := x + size / f32(2)
 	cy := y + size / f32(2)
 	mut el := element.new_element('path')
-	el.set_attribute('d', '"M $x ${y}v ${size}h ${size / f32(2)}a ${size / f32(2)} ${size / f32(2)}, 0, 0, 0, 0 ${-size}"')
-	el.set_attribute('transform', '"rotate(${(180 * rotation) / math.pi},$cx,$cy)"')
+	el.set_attribute('d', 'M $x ${y}v ${size}h ${size / f32(2)}a ${size / f32(2)} ${size / f32(2)}, 0, 0, 0, 0 ${-size}')
+	el.set_attribute('transform', 'rotate(${(180 * rotation) / math.pi},$cx,$cy)')
 	return el
 }

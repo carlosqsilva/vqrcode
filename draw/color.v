@@ -13,12 +13,12 @@ pub struct Color {
 
 pub fn rect_color(opt Color) element.Element {
 	mut rect := element.new_element('rect')
-	rect.set_attribute('x', '"$opt.x"')
-	rect.set_attribute('y', '"$opt.y"')
-	rect.set_attribute('height', '"$opt.height"')
-	rect.set_attribute('width', '"$opt.width"')
-	rect.set_attribute('clip-path', '"url(#clip-path-$opt.name)"')
-	rect.set_attribute('color', '"$opt.color"')
+	rect.set_attribute('x', opt.x.str())
+	rect.set_attribute('y', opt.y.str())
+	rect.set_attribute('height', opt.height.str())
+	rect.set_attribute('width', opt.width.str())
+	rect.set_attribute('clip-path', 'url(#clip-path-$opt.name)')
+	rect.set_attribute('color', opt.color.str())
 
 	return rect
 }
