@@ -159,6 +159,8 @@ fn (qr Qrcode) to_svg(width int, height int, border int) string {
 	mut svg := element.new_element('svg')
 	svg.set_attribute('width', width.str())
 	svg.set_attribute('height', height.str())
+  svg.set_attribute('xmlns', 'http://www.w3.org/2000/svg')
+  svg.set_attribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
 	svg.append_child(defs)
 	svg.append_child(color)
 
