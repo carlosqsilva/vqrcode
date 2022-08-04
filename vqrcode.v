@@ -174,7 +174,7 @@ fn main() {
 
   ecl := fp.int('ecl', `e`, 0, 'error correction level 0...3')
 	is_svg := fp.bool('svg', `s`, false, 'output in svg format')
-  style := fp.string('style', 0, 'round', 'round, square or dot')
+  style := fp.string('style', 0, '"round", "square" or "dot"')
   size := fp.int('size', 0, 300, 'size in px')
 
   rest := fp.finalize() or { [] }
