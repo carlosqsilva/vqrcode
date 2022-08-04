@@ -107,7 +107,7 @@ fn (qr Qrcode) to_svg(width int, height int, border int) string {
 	x_start := int(math.floor((width - qr.size * size) / 2))
 	y_start := int(math.floor((height - qr.size * size) / 2))
 
-	mut clippath := element.new_element('clippath')
+	mut clippath := element.new_element('clipPath')
 	clippath.set_attribute('id', 'clip-path-dot-color')
 
 	for x in 0 .. qr.size {
