@@ -1,6 +1,6 @@
 module draw
 
-import element
+import src.element
 
 pub fn dot(x int, y int, size int) element.Element {
 	mut el := element.new_element('circle')

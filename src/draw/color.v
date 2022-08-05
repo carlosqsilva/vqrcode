@@ -1,6 +1,6 @@
 module draw
 
-import element
+import src.element
 
 pub struct Color {
 	color  string = '#000'

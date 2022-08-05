@@ -1,6 +1,6 @@
 module draw
 
-import element
+import src.element
 import math
 
 pub fn round(x int, y int, size int, filter fn (int, int) bool) element.Element {
