@@ -13,16 +13,18 @@ CLI for creating QR codes
 
  ```bash
  vqrcode 'Testing'                     # print qrcode as ascii to console
- vqrcode 'Testing' --svg               # print qrcode in svg 
+ vqrcode 'Testing' --svg               # print qrcode in svg
+ vqrcode 'Testing' --img='qrcode.png'  # output qrcode to png file (only support png)
  vqrcode 'Testing' --svg > qrcode.svg  # output qrcode to file
  vqrcode 'Testing' --svg | pbcopy      # output qrcode to clipboard
  ```
 flags:
 ```
- --ecl     | Error correction level 0...3
- --style   | "round", "square" or "dot" (only valid with svg flag)
- --size    | Size in pixels (only valid with svg flag)
- --svg     | Output in svg
+ --ecl        | Error correction level 0...3
+ --style      | "round", "square" or "dot" (only svg support "round" and "dot" style)
+ --size       | Size in pixels (only valid with svg flag)
+ --svg        | Output in svg
+ --img        | Output in png
 ```
 
 ### Installation
