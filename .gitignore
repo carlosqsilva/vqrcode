@@ -6,4 +6,7 @@ vqrcode
 *.so
 *.dylib
 *.dll
+*.dSYM
 vls.log
+*.png
+*.jpeg

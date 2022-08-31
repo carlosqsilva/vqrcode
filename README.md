@@ -12,19 +12,22 @@ CLI for creating QR codes
 ### Usage
 
  ```bash
- vqrcode 'Testing'                     # print qrcode as ascii to console
- vqrcode 'Testing' --svg               # print qrcode in svg
- vqrcode 'Testing' --img='qrcode.png'  # output qrcode to png file (only support png)
- vqrcode 'Testing' --svg > qrcode.svg  # output qrcode to file
- vqrcode 'Testing' --svg | pbcopy      # output qrcode to clipboard
+ vqrcode 'Testing'                                  # print qrcode as ascii to console
+ vqrcode 'Testing' -s                               # print qrcode in svg
+ vqrcode 'Testing' -o ./qrcode.png                  # output qrcode to png file (only support png)
+ vqrcode 'Testing' -s > qrcode.svg                  # output qrcode to file
+ vqrcode 'Testing' -s | pbcopy                      # output qrcode to clipboard
+ vqrcode 'Testing' -s -l ./logo.png | pbcopy        # output qrcode with custom logo to clipboard
+ vqrcode 'Testing' -l ./logo.png -o ./qrcode.png    # output qrcode with custom logo to file
  ```
 flags:
 ```
- --ecl        | Error correction level 0...3
- --style      | "round", "square" or "dot" (only svg support "round" and "dot" style)
- --size       | Size in pixels (only valid with svg flag)
- --svg        | Output in svg
- --img        | Output in png
+ --ecl     -e   | Error correction level 0...3
+ --style        | "round", "square" or "dot" (only svg support "round" and "dot" style)
+ --logo    -l   | path to image to embed on qrcode
+ --size         | Size in pixels
+ --svg     -s   | Output in svg
+ --output  -o   | Output in png
 ```
 
 ### Installation
