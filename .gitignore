@@ -1,6 +1,7 @@
 # Binaries for programs and plugins
 main
 vqrcode
+.DS_Store
 *.exe
 *.exe~
 *.so
@@ -10,3 +11,4 @@ vqrcode
 vls.log
 *.png
 *.jpeg
+*.svg
