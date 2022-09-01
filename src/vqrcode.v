@@ -86,10 +86,8 @@ fn new_qrcode(text string, ecl int, style QrcodeStyle) ?Qrcode {
 	mut qrcode := []u8{len: buffer_len_max}
 	mut temp_buffer := []u8{len: buffer_len_max}
 
-	mask_level := int(QRCodeMask.auto)
-
 	ok := C.qrcodegen_encodeText(&char(text.str), &u8(temp_buffer.data), &u8(qrcode.data),
-		ecl, version_min, version_max, mask_level, true)
+		ecl, version_min, version_max, int(QRCodeMask.auto), true)
 
 	if ok {
 		return Qrcode{
@@ -263,7 +261,7 @@ fn main() {
 	output := fp.string('output', `o`, '', 'output to png')
 	logo := fp.string('logo', `l`, '', 'custom logo')
 	style := fp.string('style', 0, 'round', '"round", "square" or "dot"')
-	size := fp.int('size', 0, 300, 'size in px')
+	mut size := fp.int('size', 0, 0, 'size in px')
 
 	rest := fp.finalize() or { [] }
 
@@ -292,8 +290,10 @@ fn main() {
 
 	mut qrcode := new_qrcode(rest[0], ecl, qrcode_style) or { panic('failed to create qrcode') }
 
-	if qrcode.size > size {
-		panic('size argument too small, svg required min size: $qrcode.size')
+	size = if size > 0 { size } else { qrcode.size * 10 + 10 }
+
+	if size != 0 && qrcode.size > size {
+		panic('size argument too small, required min size for data passed is: $qrcode.size')
 	}
 
 	if is_svg {
