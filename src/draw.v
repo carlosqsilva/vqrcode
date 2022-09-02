@@ -1,7 +1,25 @@
 module draw
 
-import src.element
+import element
 import math
+
+pub struct Color {
+	color string = '#000'
+	size  int
+	name  string
+}
+
+pub fn rect_color(opt Color) element.Element {
+	mut rect := element.new_element('rect')
+	rect.set_attribute('x', '0')
+	rect.set_attribute('y', '0')
+	rect.set_attribute('height', opt.size.str())
+	rect.set_attribute('width', opt.size.str())
+	rect.set_attribute('clip-path', 'url(#clip-path-$opt.name)')
+	rect.set_attribute('fill', opt.color.str())
+
+	return rect
+}
 
 pub fn round(x int, y int, size int, filter fn (int, int) bool) element.Element {
 	left_side := filter(-1, 0)
@@ -70,5 +88,23 @@ fn side_round(x int, y int, size int, rotation f32) element.Element {
 	mut el := element.new_element('path')
 	el.set_attribute('d', 'M $x ${y}v ${size}h ${size / f32(2)}a ${size / f32(2)} ${size / f32(2)}, 0, 0, 0, 0 ${-size}')
 	el.set_attribute('transform', 'rotate(${(180 * rotation) / math.pi},$cx,$cy)')
+	return el
+}
+
+pub fn square(x int, y int, size int) element.Element {
+	mut el := element.new_element('rect')
+	el.set_attribute('x', x.str())
+	el.set_attribute('y', y.str())
+	el.set_attribute('width', size.str())
+	el.set_attribute('height', size.str())
+	return el
+}
+
+pub fn dot(x int, y int, size int) element.Element {
+	mut el := element.new_element('circle')
+	el.set_attribute('cx', '${x + size / 2}')
+	el.set_attribute('cy', '${y + size / 2}')
+	el.set_attribute('r', '${size / 2}')
+
 	return el
 }

@@ -4,9 +4,9 @@ import os
 import flag
 import math
 import strings
-import src.element
-import src.image
-import src.draw
+import element
+import image
+import draw
 
 #flag -I @VMODROOT/thirdparty
 #include "qrcodegen.h"
