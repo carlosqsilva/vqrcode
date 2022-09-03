@@ -23,18 +23,18 @@ pub fn (mut el Element) append_child(child Element) {
 	el.child << child
 }
 
-pub fn (mut el Element) str_attr() string {
+pub fn (mut el Element) attr() string {
 	return arrays.fold(el.attr.keys(), '', fn [el] (acc string, key string) string {
 		return '$acc $key=${el.attr[key]}'
 	})
 }
 
-pub fn (el Element) str_child() string {
+pub fn (el Element) child() string {
 	return arrays.fold(el.child, '', fn (acc string, child Element) string {
 		return '$acc$child'
 	})
 }
 
 pub fn (mut el Element) str() string {
-	return '<$el.name$el.str_attr()>$el.str_child()</$el.name>'
+	return '<$el.name$el.attr()>$el.child()</$el.name>'
 }

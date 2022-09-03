@@ -69,7 +69,6 @@ pub fn (mut img Image) set_pixel(x int, y int, padding int, dot_size int, is_fil
 			img.data[pos] = color.r
 			img.data[pos + 1] = color.g
 			img.data[pos + 2] = color.b
-			img.data[pos + 3] = color.a
 		}
 	}
 }
@@ -113,7 +112,7 @@ pub fn (mut img Image) fill_image(x int, y int, image Image) {
 			for j in 0 .. image.width {
 				k := (i * image.width + j) * image.channels
 				o := ((i + y) * img.width + (j + x)) * img.channels
-				if image.channels == 4 && image.data[k + 3] == 0 {
+				if image.data[k + 3] == 0 {
 					continue
 				}
 				img.data[o] = alpha_blend(img.data[o], image.data[k], image.data[k + 3])
