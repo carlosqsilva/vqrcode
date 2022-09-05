@@ -168,7 +168,7 @@ fn (mut qr Qrcode) to_image(opt Options) {
 			if !qr.is_filled(x, y) || qr.is_image_background(x, y) {
 				continue
 			}
-			img.set_pixel(x, y, padding, dot_size, true)
+			img.set_pixel(x, y, padding, dot_size)
 		}
 	}
 

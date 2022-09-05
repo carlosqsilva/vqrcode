@@ -1,7 +1,6 @@
 module image
 
 import os
-import gx
 import stbi
 import encoding.base64
 
@@ -53,9 +52,7 @@ pub fn load_from_file(path string) &Image {
 	}
 }
 
-pub fn (mut img Image) set_pixel(x int, y int, padding int, dot_size int, is_filled bool) {
-	color := if is_filled { gx.black } else { gx.white }
-
+pub fn (mut img Image) set_pixel(x int, y int, padding int, dot_size int) {
 	x_start := padding + x * dot_size
 	x_final := x_start + dot_size
 
@@ -66,9 +63,9 @@ pub fn (mut img Image) set_pixel(x int, y int, padding int, dot_size int, is_fil
 		for j in x_start .. x_final {
 			pos := (i * img.width + j) * img.channels
 
-			img.data[pos] = color.r
-			img.data[pos + 1] = color.g
-			img.data[pos + 2] = color.b
+			img.data[pos] = 0
+			img.data[pos + 1] = 0
+			img.data[pos + 2] = 0
 		}
 	}
 }
