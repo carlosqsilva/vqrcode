@@ -4,9 +4,9 @@ CLI for creating QR codes
 ### Examples
 
 <p float="left">
-<img style="display:inline-block" width="200" src="https://user-images.githubusercontent.com/19891059/187951397-b1c8d8ae-d4e6-4a44-9103-2302f7a7b83a.svg" />
-<img style="display:inline-block" width="200" src="https://user-images.githubusercontent.com/19891059/187952654-ba9a189d-ab12-4165-a028-b459cfb6725e.svg" />
-<img style="display:inline-block" width="200" src="https://user-images.githubusercontent.com/19891059/187952782-95764f2f-daa6-48df-9635-1d4bd9341c17.svg" />
+<img style="display:inline-block" width="200" src="https://user-images.githubusercontent.com/19891059/210896313-5d5941e9-6955-4f58-ab16-9114f4114c28.svg" />
+<img style="display:inline-block" width="200" src="https://user-images.githubusercontent.com/19891059/210896391-e9da0b80-6e56-4620-8ffe-7f2fddbbe024.svg" />
+<img style="display:inline-block" width="200" src="https://user-images.githubusercontent.com/19891059/210896490-e97456f4-51da-4e84-9042-176f84a11f5e.svg" />
 </p>
 
 ### Usage
