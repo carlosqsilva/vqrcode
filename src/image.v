@@ -71,7 +71,7 @@ pub fn (mut img Image) set_pixel(x int, y int, padding int, dot_size int) {
 }
 
 pub fn (mut img Image) to_base64() string {
-	return 'data:image/$img.ext;base64,${base64.url_encode(img.buffer)}'
+	return 'data:image/$img.ext;base64,${base64.encode(img.buffer)}'
 }
 
 pub fn (mut img Image) resize(width int, height int) {
