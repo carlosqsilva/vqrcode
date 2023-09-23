@@ -161,23 +161,23 @@ fn (mut qr Qrcode) compute_size(opt Options) (int, int) {
 fn (mut qr Qrcode) to_image(opt Options) {
 	dot_size, padding := qr.compute_size(opt)
 
-	mut img := image.new_image(opt.size)
+	mut imag := image.new_image(opt.size)
 
 	for x in 0 .. qr.size {
 		for y in 0 .. qr.size {
 			if !qr.is_filled(x, y) || qr.is_image_background(x, y) {
 				continue
 			}
-			img.set_pixel(x, y, padding, dot_size)
+			imag.set_pixel(x, y, padding, dot_size)
 		}
 	}
 
 	if qr.has_logo {
 		qr.logo.resize(qr.width, qr.height)
-		img.fill_image(qr.x, qr.y, qr.logo)
+		imag.fill_image(qr.x, qr.y, qr.logo)
 	}
 
-	img.save_image_as(opt.path)
+	imag.save_image_as(opt.path)
 }
 
 fn (mut qr Qrcode) to_svg(opt Options) string {
@@ -239,13 +239,13 @@ fn (mut qr Qrcode) to_svg(opt Options) string {
 	svg.append_child(color)
 
 	if qr.has_logo {
-		mut image := element.new_element('image')
-		image.set_attribute('href', qr.logo.to_base64())
-		image.set_attribute('x', qr.x.str())
-		image.set_attribute('y', qr.y.str())
-		image.set_attribute('width', '${qr.width}px')
-		image.set_attribute('height', '${qr.height}px')
-		svg.append_child(image)
+		mut img := element.new_element('image')
+		img.set_attribute('href', qr.logo.to_base64())
+		img.set_attribute('x', qr.x.str())
+		img.set_attribute('y', qr.y.str())
+		img.set_attribute('width', '${qr.width}px')
+		img.set_attribute('height', '${qr.height}px')
+		svg.append_child(img)
 	}
 
 	return svg.str()

@@ -86,14 +86,14 @@ pub fn (mut img Image) resize(width int, height int) {
 	img.data = data
 }
 
-pub fn (mut img Image) fill_image(x int, y int, image Image) {
-	if image.channels == 3 {
-		xsize := image.width * image.channels
-		for i in 0 .. image.height {
+pub fn (mut img Image) fill_image(x int, y int, imag Image) {
+	if imag.channels == 3 {
+		xsize := imag.width * imag.channels
+		for i in 0 .. imag.height {
 			dx := ((i + y) * img.width + x) * img.channels
 			sx := i * xsize
 			unsafe {
-				C.memcpy(&u8(img.data.data) + dx, &u8(image.data.data) + sx, xsize)
+				C.memcpy(&u8(img.data.data) + dx, &u8(imag.data.data) + sx, xsize)
 			}
 		}
 		return
@@ -104,17 +104,17 @@ pub fn (mut img Image) fill_image(x int, y int, image Image) {
 		return int((foreground * alpha) + background * (1 - alpha))
 	}
 
-	if image.channels == 4 {
-		for i in 0 .. image.height {
-			for j in 0 .. image.width {
-				k := (i * image.width + j) * image.channels
+	if imag.channels == 4 {
+		for i in 0 .. imag.height {
+			for j in 0 .. imag.width {
+				k := (i * imag.width + j) * imag.channels
 				o := ((i + y) * img.width + (j + x)) * img.channels
-				if image.data[k + 3] == 0 {
+				if imag.data[k + 3] == 0 {
 					continue
 				}
-				img.data[o] = alpha_blend(img.data[o], image.data[k], image.data[k + 3])
-				img.data[o + 1] = alpha_blend(img.data[o + 1], image.data[k + 1], image.data[k + 3])
-				img.data[o + 2] = alpha_blend(img.data[o + 2], image.data[k + 2], image.data[k + 3])
+				img.data[o] = alpha_blend(img.data[o], imag.data[k], imag.data[k + 3])
+				img.data[o + 1] = alpha_blend(img.data[o + 1], imag.data[k + 1], imag.data[k + 3])
+				img.data[o + 2] = alpha_blend(img.data[o + 2], imag.data[k + 2], imag.data[k + 3])
 			}
 		}
 	}
