@@ -1,5 +1,3 @@
-module element
-
 import arrays
 
 pub struct Element {

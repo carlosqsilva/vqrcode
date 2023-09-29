@@ -1,22 +1,17 @@
-module image
+module main
 
 import os
 import stbi
 import encoding.base64
 
-#include "stbi_image_resize.h"
-#flag @VMODROOT/thirdparty/stbi_image_resize.o
-
-fn C.stbir_resize_uint8(input_data voidptr, input_w int, input_h int, input_stride int, output_data voidptr, out_w int, out_h int, out_stride int, channels int) int
-
 pub struct Image {
 pub mut:
 	width    int
 	height   int
-	channels int = 3
+	nr_channels int = 3
 	ext      string
-	buffer   []u8
 	data     []byte
+  buffer   []u8
 }
 
 pub fn new_image(size int) &Image {
@@ -27,13 +22,12 @@ pub fn new_image(size int) &Image {
 	}
 }
 
-pub fn load_from_file(path string) &Image {
+pub fn load_image_from_file(path string) &Image {
 	if !os.exists(path) {
 		panic('$path not found')
 	}
 
 	mut file := os.read_file(path) or { panic('Failed to read file at $path') }
-
 	img := stbi.load_from_memory(file.str, file.len) or { panic(err) }
 
 	data := []byte{len: img.width * img.height * img.nr_channels}
@@ -45,10 +39,10 @@ pub fn load_from_file(path string) &Image {
 	return &Image{
 		width: img.width
 		height: img.height
-		channels: img.nr_channels
+		nr_channels: img.nr_channels
 		ext: path.all_after_last('.')
-		data: data
-		buffer: file.bytes()
+		data: data,
+    buffer: file.bytes()
 	}
 }
 
@@ -61,7 +55,7 @@ pub fn (mut img Image) set_pixel(x int, y int, padding int, dot_size int) {
 
 	for i in y_start .. y_final {
 		for j in x_start .. x_final {
-			pos := (i * img.width + j) * img.channels
+			pos := (i * img.width + j) * img.nr_channels
 
 			img.data[pos] = 0
 			img.data[pos + 1] = 0
@@ -75,25 +69,33 @@ pub fn (mut img Image) to_base64() string {
 }
 
 pub fn (mut img Image) resize(width int, height int) {
-	data := []byte{len: width * height * img.channels}
-	result := C.stbir_resize_uint8(&u8(img.data.data), img.width, img.height, 0, &u8(data.data),
-		width, height, 0, img.channels)
-	if result != 1 {
-		panic('failed to resize image')
-	}
+  new_image := stbi.resize_uint8(
+      &stbi.Image{width: img.width, height: img.height, data: img.data.data, nr_channels: img.nr_channels},
+      width,
+      height
+    ) or {
+    panic('failed to resize image')
+  }
+
+	mut data := []byte{len: width * height * img.nr_channels}
+
+  unsafe {
+    C.memcpy(data.data, new_image.data, data.len)
+  }
+
 	img.width = width
 	img.height = height
 	img.data = data
 }
 
-pub fn (mut img Image) fill_image(x int, y int, imag Image) {
-	if imag.channels == 3 {
-		xsize := imag.width * imag.channels
-		for i in 0 .. imag.height {
-			dx := ((i + y) * img.width + x) * img.channels
+pub fn (mut img Image) fill_image(x int, y int, logo Image) {
+	if logo.nr_channels == 3 {
+		xsize := logo.width * logo.nr_channels
+		for i in 0 .. logo.height {
+			dx := ((i + y) * img.width + x) * img.nr_channels
 			sx := i * xsize
 			unsafe {
-				C.memcpy(&u8(img.data.data) + dx, &u8(imag.data.data) + sx, xsize)
+				C.memcpy(&u8(img.data.data) + dx, &u8(logo.data.data) + sx, xsize)
 			}
 		}
 		return
@@ -104,24 +106,24 @@ pub fn (mut img Image) fill_image(x int, y int, imag Image) {
 		return int((foreground * alpha) + background * (1 - alpha))
 	}
 
-	if imag.channels == 4 {
-		for i in 0 .. imag.height {
-			for j in 0 .. imag.width {
-				k := (i * imag.width + j) * imag.channels
-				o := ((i + y) * img.width + (j + x)) * img.channels
-				if imag.data[k + 3] == 0 {
+	if logo.nr_channels == 4 {
+		for i in 0 .. logo.height {
+			for j in 0 .. logo.width {
+				k := (i * logo.width + j) * logo.nr_channels
+				o := ((i + y) * img.width + (j + x)) * img.nr_channels
+				if logo.data[k + 3] == 0 {
 					continue
 				}
-				img.data[o] = alpha_blend(img.data[o], imag.data[k], imag.data[k + 3])
-				img.data[o + 1] = alpha_blend(img.data[o + 1], imag.data[k + 1], imag.data[k + 3])
-				img.data[o + 2] = alpha_blend(img.data[o + 2], imag.data[k + 2], imag.data[k + 3])
+				img.data[o] = alpha_blend(img.data[o], logo.data[k], logo.data[k + 3])
+				img.data[o + 1] = alpha_blend(img.data[o + 1], logo.data[k + 1], logo.data[k + 3])
+				img.data[o + 2] = alpha_blend(img.data[o + 2], logo.data[k + 2], logo.data[k + 3])
 			}
 		}
 	}
 }
 
 pub fn (mut img Image) save_image_as(path string) {
-	stbi.stbi_write_png(path, img.width, img.height, img.channels, img.data.data, img.width * img.channels) or {
+	stbi.stbi_write_png(path, img.width, img.height, img.nr_channels, img.data.data, img.width * img.nr_channels) or {
 		panic(err)
 	}
 }

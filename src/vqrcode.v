@@ -4,13 +4,10 @@ import os
 import flag
 import math
 import strings
-import element
-import image
-import draw
 
 #flag -I @VMODROOT/thirdparty
-#include "qrcodegen.h"
 #flag @VMODROOT/thirdparty/qrcodegen.o
+#include "qrcodegen.h"
 
 enum ErrorCorrectionLevel {
 	low = 0 // The QR Code can tolerate about  7% erroneous codewords
@@ -55,7 +52,7 @@ enum QrcodeStyle {
 
 struct Logo {
 mut:
-	logo     image.Image
+	logo     Image
 	has_logo bool
 	width    int
 	height   int
@@ -135,7 +132,7 @@ fn (mut qr Qrcode) compute_size(opt Options) (int, int) {
 	padding := int(math.floor((opt.size - qr.size * dot_size) / 2))
 
 	if opt.logo != '' {
-		logo := image.load_from_file(opt.logo)
+		logo := load_image_from_file(opt.logo)
 		new_height := opt.size * f32(0.2)
 		new_width := logo.width * (new_height / logo.height)
 		x := int(padding + (qr.size * dot_size - new_width) / 2)
@@ -161,29 +158,29 @@ fn (mut qr Qrcode) compute_size(opt Options) (int, int) {
 fn (mut qr Qrcode) to_image(opt Options) {
 	dot_size, padding := qr.compute_size(opt)
 
-	mut imag := image.new_image(opt.size)
+	mut img := new_image(opt.size)
 
 	for x in 0 .. qr.size {
 		for y in 0 .. qr.size {
 			if !qr.is_filled(x, y) || qr.is_image_background(x, y) {
 				continue
 			}
-			imag.set_pixel(x, y, padding, dot_size)
+			img.set_pixel(x, y, padding, dot_size)
 		}
 	}
 
 	if qr.has_logo {
 		qr.logo.resize(qr.width, qr.height)
-		imag.fill_image(qr.x, qr.y, qr.logo)
+		img.fill_image(qr.x, qr.y, qr.logo)
 	}
 
-	imag.save_image_as(opt.path)
+	img.save_image_as(opt.path)
 }
 
 fn (mut qr Qrcode) to_svg(opt Options) string {
 	dot_size, padding := qr.compute_size(opt)
 
-	mut clippath := element.new_element('clipPath')
+	mut clippath := new_element('clipPath')
 	clippath.set_attribute('id', 'clip-path-dot-color')
 
 	for x in 0 .. qr.size {
@@ -208,13 +205,13 @@ fn (mut qr Qrcode) to_svg(opt Options) string {
 
 			dot := match qr.style {
 				.dot {
-					draw.dot(pos_x, pos_y, dot_size)
+					dot_element(pos_x, pos_y, dot_size)
 				}
 				.round {
-					draw.round(pos_x, pos_y, dot_size, filter)
+					round_element(pos_x, pos_y, dot_size, filter)
 				}
 				else {
-					draw.square(pos_x, pos_y, dot_size)
+					square_element(pos_x, pos_y, dot_size)
 				}
 			}
 
@@ -222,15 +219,15 @@ fn (mut qr Qrcode) to_svg(opt Options) string {
 		}
 	}
 
-	mut defs := element.new_element('defs')
+	mut defs := new_element('defs')
 	defs.append_child(clippath)
 
-	color := draw.rect_color(
+	color := rect_color(
 		name: 'dot-color'
 		size: opt.size
 	)
 
-	mut svg := element.new_element('svg')
+	mut svg := new_element('svg')
 	svg.set_attribute('width', opt.size.str())
 	svg.set_attribute('height', opt.size.str())
 	svg.set_attribute('xmlns', 'http://www.w3.org/2000/svg')
@@ -239,7 +236,7 @@ fn (mut qr Qrcode) to_svg(opt Options) string {
 	svg.append_child(color)
 
 	if qr.has_logo {
-		mut img := element.new_element('image')
+		mut img := new_element('image')
 		img.set_attribute('href', qr.logo.to_base64())
 		img.set_attribute('x', qr.x.str())
 		img.set_attribute('y', qr.y.str())
