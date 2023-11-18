@@ -10,7 +10,7 @@ pub mut:
 	height   int
 	nr_channels int = 3
 	ext      string
-	data     []byte
+	data     []u8
   buffer   []u8
 }
 
@@ -18,7 +18,7 @@ pub fn new_image(size int) &Image {
 	return &Image{
 		width: size
 		height: size
-		data: []byte{len: size * size * 3, init: 255}
+		data: []u8{len: size * size * 3, init: 255}
 	}
 }
 
@@ -30,7 +30,7 @@ pub fn load_image_from_file(path string) &Image {
 	mut file := os.read_file(path) or { panic('Failed to read file at $path') }
 	img := stbi.load_from_memory(file.str, file.len) or { panic(err) }
 
-	data := []byte{len: img.width * img.height * img.nr_channels}
+	data := []u8{len: img.width * img.height * img.nr_channels}
 
 	unsafe {
 		C.memcpy(data.data, img.data, data.len)
@@ -77,7 +77,7 @@ pub fn (mut img Image) resize(width int, height int) {
     panic('failed to resize image')
   }
 
-	mut data := []byte{len: width * height * img.nr_channels}
+	mut data := []u8{len: width * height * img.nr_channels}
 
   unsafe {
     C.memcpy(data.data, new_image.data, data.len)
@@ -101,9 +101,9 @@ pub fn (mut img Image) fill_image(x int, y int, logo Image) {
 		return
 	}
 
-	alpha_blend := fn (background int, foreground int, foreground_alpha int) int {
+	alpha_blend := fn (background int, foreground int, foreground_alpha int) u8 {
 		alpha := foreground_alpha / f32(255)
-		return int((foreground * alpha) + background * (1 - alpha))
+		return u8((foreground * alpha) + background * (1 - alpha))
 	}
 
 	if logo.nr_channels == 4 {
