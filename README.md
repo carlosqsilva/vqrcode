@@ -30,11 +30,15 @@ flags:
  --output  -o   | Output in png
 ```
 
-### Installation
+# Installation
 
-Installation script coming soon!
+## Homebrew
 
-### Building from source
+```bash
+brew install carlosqsilva/brew/vqrcode
+```
+
+## Install from source
 
 #### 0) Install [vlang](https://vlang.io), and add to your `path`
 #### 1) clone repo
