@@ -1,7 +1,5 @@
 module main
 
-import os
-import flag
 import math
 import strings
 
@@ -38,11 +36,9 @@ fn buffer_for_version(version int) int {
 	return ((version * 4 + 17) * (version * 4 + 17) + 7) / 8 + 1
 }
 
-const (
-	version_min    = 1
-	version_max    = 40
-	buffer_len_max = buffer_for_version(version_max)
-)
+const version_min    = 1
+const version_max    = 40
+const	buffer_len_max = buffer_for_version(version_max)
 
 enum QrcodeStyle {
 	dot
@@ -249,54 +245,22 @@ fn (mut qr Qrcode) to_svg(opt Options) string {
 }
 
 fn main() {
-	mut fp := flag.new_flag_parser(os.args)
-	fp.description('Qrcode generator')
-	fp.skip_executable()
+  mut config := read_config()
 
-	mut ecl := fp.int('ecl', `e`, 0, 'error correction level 0...3')
-	is_svg := fp.bool('svg', `s`, false, 'output in svg format')
-	output := fp.string('output', `o`, '', 'output to png')
-	logo := fp.string('logo', `l`, '', 'custom logo')
-	style := fp.string('style', 0, 'round', '"round", "square" or "dot"')
-	mut size := fp.int('size', 0, 0, 'size in px')
+	mut qrcode := new_qrcode(config.content, config.ecl, config.style) or {
+    panic('failed to create qrcode')
+  }
 
-	rest := fp.finalize() or { [] }
+	config.size = if config.size > 0 { config.size } else { qrcode.size * 10 + 10 }
 
-	if rest.len == 0 {
-		panic('No text was passed')
-	}
-
-	if ecl !in [0, 1, 2, 3] {
-		panic('Invalid error correction level
-          LOW      = 0
-          MEDIUM   = 1
-          QUARTILE = 2
-          HIGH     = 3')
-	}
-
-	// Increase error correction level if logo is present
-	if logo != '' && ecl < 2 {
-		ecl = 2
-	}
-
-	qrcode_style := match style {
-		'round' { QrcodeStyle.round }
-		'dot' { QrcodeStyle.dot }
-		else { QrcodeStyle.square }
-	}
-
-	mut qrcode := new_qrcode(rest[0], ecl, qrcode_style) or { panic('failed to create qrcode') }
-
-	size = if size > 0 { size } else { qrcode.size * 10 + 10 }
-
-	if size != 0 && qrcode.size > size {
+	if config.size != 0 && qrcode.size > config.size {
 		panic('size argument too small, required min size for data passed is: $qrcode.size')
 	}
 
-	if is_svg {
-		println(qrcode.to_svg(size: size, border: 0, logo: logo))
-	} else if output != '' {
-		qrcode.to_image(size: size, path: output, logo: logo)
+	if config.is_svg {
+		println(qrcode.to_svg(size: config.size, border: 0, logo: config.logo))
+	} else if config.output != '' {
+		qrcode.to_image(size: config.size, path: config.output, logo: config.logo)
 	} else {
 		qrcode.print(border: 0)
 	}
