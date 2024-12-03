@@ -5,9 +5,11 @@ CLI for creating QR codes
 ## Examples
 
 <p float="left">
-<img style="display:inline-block" width="200" src="https://user-images.githubusercontent.com/19891059/210896313-5d5941e9-6955-4f58-ab16-9114f4114c28.svg" />
-<img style="display:inline-block" width="200" src="https://user-images.githubusercontent.com/19891059/210896391-e9da0b80-6e56-4620-8ffe-7f2fddbbe024.svg" />
-<img style="display:inline-block" width="200" src="https://user-images.githubusercontent.com/19891059/210896490-e97456f4-51da-4e84-9042-176f84a11f5e.svg" />
+<img style="display:inline-block" width="240" src="https://github.com/user-attachments/assets/8e6585db-9cec-4b2c-b9fc-8a86c7d7622a" />
+<img style="display:inline-block" width="240" src="https://github.com/user-attachments/assets/f51470ef-9e46-4450-9b1e-969286154acc" />
+<img style="display:inline-block" width="240" src="https://github.com/user-attachments/assets/6cd69ca3-8558-46e2-8c59-621b6d952073" />
+<img style="display:inline-block" width="240" src="https://github.com/user-attachments/assets/eb84cdb5-988a-457c-bb5c-1325306b9cec" />
+<img style="display:inline-block" width="240" src="https://github.com/user-attachments/assets/8df884fe-2cb4-4852-9cf8-6afb837acccc" />
 </p>
 
 ### Usage
