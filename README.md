@@ -31,7 +31,8 @@ flags:
 
 ```sh
  --ecl     -e   | Error correction level 0...3
- --style   -s   | "round", "pointed", "sharp", "square", "circle" or "dot"
+ --style   -s   | qrcode style, values: "round", "pointed", "sharp", "square", "circle" or "dot"
+ --finder  -f   | finder pattern style, values: "round", "pointed", "sharp", "square", "octagon" "circle" or "dot"
  --logo    -l   | path to image to embed on qrcode
  --size         | Size in pixels, valid when the output is image
  --svg          | Output to svg
