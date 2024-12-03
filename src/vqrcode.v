@@ -7,6 +7,61 @@ import strings
 #flag @VMODROOT/thirdparty/qrcodegen.o
 #include "qrcodegen.h"
 
+fn C.qrcodegen_encodeText(text &char, tempBuffer &u8, qrcode &u8, ecl int, min int, max int, mask int, boost bool) bool
+
+fn C.qrcodegen_getSize(qrcode &u8) int
+
+fn C.qrcodegen_getModule(qrcode &u8, x int, y int) bool
+
+#include "librsvg/rsvg.h"
+#include "cairo.h"
+
+@[typedef]
+struct C.RsvgRectangle {
+  x f64     // x coordinate
+  y f64     // y coordinate
+  width f64 // width
+  height f64 // height
+}
+
+struct C.RsvgHandle {}
+
+fn C.rsvg_handle_new_from_data(
+    data &u8,      // equivalent to guint8*
+    data_len usize, // equivalent to gsize
+    error &&C.GError // equivalent to GError**
+) &C.RsvgHandle   // returns RsvgHandle*
+
+fn C.rsvg_handle_set_dpi (handle &C.RsvgHandle, dpi f64)
+
+@[typedef]
+struct C.cairo_surface_t {}
+
+fn C.cairo_image_surface_create(
+   format int,    // Cairo format enum => always use 0 for CAIRO_FORMAT_ARGB32
+   width int,     // surface width
+   height int     // surface height
+) &C.cairo_surface_t  // pointer to cairo surface
+
+fn C.cairo_surface_write_to_png(
+   surface &C.cairo_surface_t,  // pointer to cairo surface
+   filename &char               // filename as C string
+) int                            // returns status code
+
+@[typedef]
+struct C.cairo_t {}
+
+fn C.cairo_create(
+   target &C.cairo_surface_t  // pointer to cairo surface
+) &C.cairo_t                   // returns pointer to cairo context
+
+fn C.rsvg_handle_render_document(
+   handle &C.RsvgHandle,        // RsvgHandle pointer
+   cr &C.cairo_t,               // Cairo context pointer
+   viewport &C.RsvgRectangle,   // RsvgRectangle pointer for viewport
+   error &&C.GError             // GError double pointer
+) bool                           // returns gboolean as bool
+
 enum ErrorCorrectionLevel {
 	low = 0 // The QR Code can tolerate about  7% erroneous codewords
 	medium = 1 // The QR Code can tolerate about 15% erroneous codewords
@@ -26,24 +81,23 @@ enum QRCodeMask {
 	level7 = 7
 }
 
-fn C.qrcodegen_encodeText(text &char, tempBuffer &u8, qrcode &u8, ecl int, min int, max int, mask int, boost bool) bool
-
-fn C.qrcodegen_getSize(qrcode &u8) int
-
-fn C.qrcodegen_getModule(qrcode &u8, x int, y int) bool
-
 fn buffer_for_version(version int) int {
 	return ((version * 4 + 17) * (version * 4 + 17) + 7) / 8 + 1
 }
 
 const version_min    = 1
 const version_max    = 40
+const dot_size       = 10
 const	buffer_len_max = buffer_for_version(version_max)
 
 enum QrcodeStyle {
 	dot
 	round
+  sharp
+	circle
 	square
+	pointed
+	octagon
 }
 
 struct Logo {
@@ -72,10 +126,9 @@ struct Qrcode {
 	Logo
 	encode_text []u8
 	size        int
-	style       QrcodeStyle = .dot
 }
 
-fn new_qrcode(text string, ecl int, style QrcodeStyle) ?Qrcode {
+fn new_qrcode(text string, ecl int) ?Qrcode {
 	mut qrcode := []u8{len: buffer_len_max}
 	mut temp_buffer := []u8{len: buffer_len_max}
 
@@ -86,7 +139,6 @@ fn new_qrcode(text string, ecl int, style QrcodeStyle) ?Qrcode {
 		return Qrcode{
 			encode_text: qrcode
 			size: C.qrcodegen_getSize(&u8(qrcode.data))
-			style: style
 		}
 	}
 
@@ -97,18 +149,19 @@ fn (qr Qrcode) is_filled(x int, y int) bool {
 	return C.qrcodegen_getModule(&u8(qr.encode_text.data), x, y)
 }
 
-struct Options {
-	size   int
-	border int
-	path   string
-	logo   string
+fn (qr Qrcode) is_frame(x int, y int) bool {
+  frame_size := 7
+  if x <= frame_size && y <= frame_size { return true }
+  if x <= frame_size && y >= qr.size - frame_size { return true }
+  if x >= qr.size - frame_size && y <= frame_size { return true }
+  return false
 }
 
-fn (qr Qrcode) print(opt Options) {
-	length := qr.size + opt.border
+fn (qr Qrcode) print(border int) {
+	length := qr.size + border
 	mut content := strings.new_builder(length * length)
-	for y in -opt.border .. length {
-		for x in -opt.border .. length {
+	for y in -border .. length {
+		for x in -border .. length {
 			content.write_string(if qr.is_filled(x, y) { '██' } else { '  ' })
 		}
 		content.write_string('\n')
@@ -116,120 +169,113 @@ fn (qr Qrcode) print(opt Options) {
 	println(content)
 }
 
-fn (mut qr Qrcode) compute_size(opt Options) (int, int) {
-	min_size := opt.size - opt.border * 2
+fn (mut qr Qrcode) compute_size(conf &Config) int {
+  qrsize := qr.size * dot_size
 
-	mut dot_size := int(math.floor(min_size / f32(qr.size)))
+	if conf.logo != '' {
+		logo := load_image_from_file(conf.logo)
 
-	if dot_size % 2 != 0 {
-		dot_size++
-	}
+		height := qrsize * f32(0.2)
+		width := logo.width * (height / logo.height)
 
-	padding := int(math.floor((opt.size - qr.size * dot_size) / 2))
-
-	if opt.logo != '' {
-		logo := load_image_from_file(opt.logo)
-		new_height := opt.size * f32(0.2)
-		new_width := logo.width * (new_height / logo.height)
-		x := int(padding + (qr.size * dot_size - new_width) / 2)
-		y := int(padding + (qr.size * dot_size - new_height) / 2)
+		x := int((qrsize - width) / 2)
+		y := int((qrsize - height) / 2)
 
 		qr.Logo = Logo{
 			has_logo: true
 			logo: logo
-			width: int(new_width)
-			height: int(new_height)
+			width: int(width)
+			height: int(height)
 			x: x
 			y: y
-			start_x: int(math.floor((x - padding) / f32(dot_size)))
-			end_x: int(math.floor((new_width + x - padding) / f32(dot_size)))
-			start_y: int(math.floor((y - padding) / f32(dot_size)))
-			end_y: int(math.floor((new_height + y - padding) / f32(dot_size)))
+			start_x: int(math.floor(x / f32(dot_size)))
+			end_x: int(math.floor((width + x) / f32(dot_size)))
+			start_y: int(math.floor(y / f32(dot_size)))
+			end_y: int(math.floor((height + y) / f32(dot_size)))
 		}
 	}
 
-	return dot_size, padding
+	return qrsize + conf.padding * 2
 }
 
-fn (mut qr Qrcode) to_image(opt Options) {
-	dot_size, padding := qr.compute_size(opt)
+fn (mut qr Qrcode) to_svg(conf &Config) string {
+	size :=	qr.compute_size(conf)
 
-	mut img := new_image(opt.size)
+	filter := fn [qr] (x int, y int, x_offset int, y_offset int) bool {
+		return match true {
+			(x + x_offset < 0) { false }
+			(y + y_offset < 0) { false }
+			(x + x_offset >= qr.size) { false }
+			(y + y_offset >= qr.size) { false }
+			qr.is_image_background(x + x_offset, y + y_offset) { false }
+			else { qr.is_filled(x + x_offset, y + y_offset) }
+		}
+	}
+
+	mut container := new_element('g')
+	container.set_attribute('transform', 'translate($conf.padding,$conf.padding)')
+
+	match conf.finder {
+	  .circle, .dot {
+			container.append_childs(dot_frame(qr.size))
+		}
+		.pointed {
+		  container.append_childs(pointed_frame(qr.size))
+		}
+    .sharp {
+      container.append_childs(sharp_frame(qr.size))
+    }
+    .octagon {
+      container.append_childs(octagon_frame(qr.size))
+    }
+		.round {
+		  container.append_childs(round_frame(qr.size))
+		}
+		else {}
+	}
+
+	skip_frame := match conf.style {
+	  .square { false }
+		else { true }
+	}
 
 	for x in 0 .. qr.size {
 		for y in 0 .. qr.size {
 			if !qr.is_filled(x, y) || qr.is_image_background(x, y) {
 				continue
 			}
-			img.set_pixel(x, y, padding, dot_size)
-		}
-	}
 
-	if qr.has_logo {
-		qr.logo.resize(qr.width, qr.height)
-		img.fill_image(qr.x, qr.y, qr.logo)
-	}
-
-	img.save_image_as(opt.path)
-}
-
-fn (mut qr Qrcode) to_svg(opt Options) string {
-	dot_size, padding := qr.compute_size(opt)
-
-	mut clippath := new_element('clipPath')
-	clippath.set_attribute('id', 'clip-path-dot-color')
-
-	for x in 0 .. qr.size {
-		for y in 0 .. qr.size {
-			if !qr.is_filled(x, y) || qr.is_image_background(x, y) {
-				continue
+			if  qr.is_frame(x, y) && skip_frame {
+			  continue
 			}
 
-			pos_x := padding + x * dot_size
-			pos_y := padding + y * dot_size
+			pos_x := x * dot_size
+			pos_y := y * dot_size
 
-			filter := fn [x, y, qr] (x_offset int, y_offset int) bool {
-				return match true {
-					(x + x_offset < 0) { false }
-					(y + y_offset < 0) { false }
-					(x + x_offset >= qr.size) { false }
-					(y + y_offset >= qr.size) { false }
-					qr.is_image_background(x + x_offset, y + y_offset) { false }
-					else { qr.is_filled(x + x_offset, y + y_offset) }
-				}
-			}
-
-			dot := match qr.style {
+			element := match conf.style {
 				.dot {
-					dot_element(pos_x, pos_y, dot_size)
+				  dot_element(pos_x, pos_y)
+				}
+				.circle {
+				  circle_element(pos_x, pos_y)
 				}
 				.round {
-					round_element(pos_x, pos_y, dot_size, filter)
+					round_element(x, y, filter)
 				}
+				.pointed {
+				  pointed_element(x, y, filter)
+				}
+        .sharp {
+          sharp_element(x, y, filter)
+        }
 				else {
-					square_element(pos_x, pos_y, dot_size)
+					square_element(pos_x, pos_y)
 				}
 			}
 
-			clippath.append_child(dot)
+			container.append_child(element)
 		}
 	}
-
-	mut defs := new_element('defs')
-	defs.append_child(clippath)
-
-	color := rect_color(
-		name: 'dot-color'
-		size: opt.size
-	)
-
-	mut svg := new_element('svg')
-	svg.set_attribute('width', opt.size.str())
-	svg.set_attribute('height', opt.size.str())
-	svg.set_attribute('xmlns', 'http://www.w3.org/2000/svg')
-	svg.set_attribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
-	svg.append_child(defs)
-	svg.append_child(color)
 
 	if qr.has_logo {
 		mut img := new_element('image')
@@ -238,30 +284,57 @@ fn (mut qr Qrcode) to_svg(opt Options) string {
 		img.set_attribute('y', qr.y.str())
 		img.set_attribute('width', '${qr.width}px')
 		img.set_attribute('height', '${qr.height}px')
-		svg.append_child(img)
+		container.append_child(img)
 	}
 
+	mut svg := new_element('svg')
+	svg.set_attribute('width', size.str())
+	svg.set_attribute('height', size.str())
+	svg.set_attribute('xmlns', 'http://www.w3.org/2000/svg')
+	svg.append_child(container)
+
 	return svg.str()
+}
+
+fn (mut qr Qrcode) to_image(conf &Config) {
+  svg := qr.to_svg(conf)
+  mut handle := C.rsvg_handle_new_from_data(&char(svg.str), svg.len, C.NULL)
+
+  if handle == C.NULL {
+    panic("could not create RsvgHandle")
+  }
+
+  surface := C.cairo_image_surface_create(0, conf.size, conf.size)
+  cx := C.cairo_create(surface)
+
+  viewport := C.RsvgRectangle{
+    x: 0.0,
+    y: 0.0,
+    width: f64(conf.size),
+    height: f64(conf.size),
+  }
+
+  if !C.rsvg_handle_render_document(handle, cx, &viewport, C.NULL) {
+		panic("could not render image")
+	}
+
+	if C.cairo_surface_write_to_png(surface, conf.output.str) != 0 {
+		panic("could not write output file")
+	}
 }
 
 fn main() {
   mut config := read_config()
 
-	mut qrcode := new_qrcode(config.content, config.ecl, config.style) or {
+	mut qrcode := new_qrcode(config.content, config.ecl) or {
     panic('failed to create qrcode')
   }
 
-	config.size = if config.size > 0 { config.size } else { qrcode.size * 10 + 10 }
-
-	if config.size != 0 && qrcode.size > config.size {
-		panic('size argument too small, required min size for data passed is: $qrcode.size')
-	}
-
 	if config.is_svg {
-		println(qrcode.to_svg(size: config.size, border: 0, logo: config.logo))
+		println(qrcode.to_svg(config))
 	} else if config.output != '' {
-		qrcode.to_image(size: config.size, path: config.output, logo: config.logo)
+		qrcode.to_image(config)
 	} else {
-		qrcode.print(border: 0)
+		qrcode.print(0)
 	}
 }

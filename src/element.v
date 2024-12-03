@@ -21,6 +21,10 @@ pub fn (mut el Element) append_child(child Element) {
 	el.child << child
 }
 
+pub fn (mut el Element) append_childs(childs []Element) {
+	el.child << childs
+}
+
 pub fn (mut el Element) attr() string {
 	return arrays.fold(el.attr.keys(), '', fn [el] (acc string, key string) string {
 		return '$acc $key=${el.attr[key]}'
