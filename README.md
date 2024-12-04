@@ -80,7 +80,7 @@ cd vqrcode/
 just build
 ```
 
-# or
+or
 
 ```bash
 v -cc gcc \
