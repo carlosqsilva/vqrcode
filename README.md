@@ -77,6 +77,12 @@ cd vqrcode/
 #### 4) build program
 
 ```bash
+just build
+```
+
+# or
+
+```bash
 v -cc gcc \
 -cflags "$(pkg-config --cflags librsvg-2.0 cairo)" \
 -ldflags "$(pkg-config --libs librsvg-2.0 cairo)" \
