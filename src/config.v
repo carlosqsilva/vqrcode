@@ -12,6 +12,8 @@ struct Config {
   finder   QrcodeStyle
   content  string
   padding  int
+  sensitive bool
+  display_anyway bool
   pub mut:
   size     int
 }
@@ -29,12 +31,22 @@ fn read_config() &Config {
 	finder := fp.string('finder', `f`, '', '"round", "pointed", "square", "sharp", "octagon", "circle" or "dot"')
   padding := fp.int('padding', `p`, 20, 'padding around the svg')
 	mut size := fp.int('size', 0, 500, 'size in px, only valid for image output')
+	sensitive := fp.bool('sensitive', 0, false, 'read input without echo for sensitive data')
+	display_anyway := fp.bool('display-anyway', 0, false, 'allow displaying sensitive QR codes on screen')
 
   rest := fp.finalize() or { [] }
 
-  content := if rest.len > 0 { rest[0] } else { os.get_lines_joined() }
+  content := if sensitive {
+    // Disable echo for sensitive input
+    os.execute('stty -echo')
+    defer { os.execute('stty echo') }
+    println('Enter text (input will not be echoed):')
+    os.get_line().trim_space()
+  } else {
+    if rest.len > 0 { rest[0] } else { os.get_lines_joined() }
+  }
 
-  if content.str == 0 {
+  if content == '' {
 		eprintln('No text was passed')
     exit(1)
 	}
@@ -49,7 +61,7 @@ fn read_config() &Config {
 	}
 
   // Increase error correction level if logo is present
-	if logo.str != 0 && ecl < 2 {
+	if logo != '' && ecl < 2 {
 		ecl = 3
 	}
 
@@ -81,6 +93,8 @@ fn read_config() &Config {
     output: output,
     logo: logo,
     size: size,
-    padding: padding
+    padding: padding,
+    sensitive: sensitive,
+    display_anyway: display_anyway
   }
 }

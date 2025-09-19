@@ -20,13 +20,17 @@ pbpaste | vqrcode -o > qrcode.png
 pbpaste | vqrcode --svg | pbcopy
 pbpaste | vqrcode --svg > qrcode.svg
 
-vqrcode 'hello'                                  # print qrcode as ascii to console
-vqrcode 'hello' --svg -s "pointed"               # print qrcode in svg, with "pointed" style
-vqrcode 'hello' --svg > qrcode.svg               # output qrcode to file
-vqrcode 'hello' -o qrcode.png                    # output qrcode to png file (only support png)
-vqrcode 'hello' --svg | pbcopy                   # output qrcode to clipboard
-vqrcode 'hello' --svg -l ./logo.png | pbcopy     # output qrcode with custom logo to clipboard
-vqrcode 'hello' -l ./logo.png -o ./qrcode.png    # output qrcode with custom logo to file
+echo 'hello' | vqrcode                                  # print qrcode as ascii to console
+echo 'hello' | vqrcode --svg -s "pointed"               # print qrcode in svg, with "pointed" style
+echo 'hello' | vqrcode --svg > qrcode.svg               # output qrcode to file
+echo 'hello' | vqrcode -o qrcode.png                    # output qrcode to png file (only support png)
+echo 'hello' | vqrcode --svg | pbcopy                   # output qrcode to clipboard
+echo 'hello' | vqrcode --svg -l ./logo.png | pbcopy     # output qrcode with custom logo to clipboard
+echo 'hello' | vqrcode -l ./logo.png -o ./qrcode.png    # output qrcode with custom logo to file
+
+vqrcode --sensitive -o secure.png                       # prompt for sensitive input, output to PNG file
+vqrcode --sensitive --svg > secure.svg                  # prompt for sensitive input, output to SVG file
+vqrcode --sensitive --display-anyway                    # prompt for sensitive input, display QR on screen
 ```
 
 flags:
@@ -39,6 +43,8 @@ flags:
  --size         | Size in pixels, valid when the output is image
  --svg          | Output to svg
  --output  -o   | Output to png
+ --sensitive    | Read input without echo for sensitive data
+ --display-anyway | Allow displaying sensitive QR codes on screen
 ```
 
 ## Installation
@@ -61,6 +67,14 @@ the following dependencies are required to output in png:
 brew install librsvg cairo              // MacOs homebrew
 apt install librsvg2-dev libcairo2-dev  // linux package manager
 ```
+
+For Windows cross-compilation from Linux, install MinGW:
+
+```bash
+sudo apt install -y gcc-mingw-w64  # Debian/Ubuntu
+```
+
+**Note**: PNG output is not supported when cross-compiling for Windows. Use ASCII or SVG output instead.
 
 #### 2) clone repo
 
@@ -87,6 +101,20 @@ v -cc gcc \
 -cflags "$(pkg-config --cflags librsvg-2.0 cairo)" \
 -ldflags "$(pkg-config --libs librsvg-2.0 cairo)" \
 -prod vqrcode.v
+```
+
+#### Windows Cross-Compilation (from Linux)
+
+To build a Windows executable from Linux:
+
+```bash
+just build-windows
+```
+
+or
+
+```bash
+v -os windows -prod -o vqrcode.exe .
 ```
 
 After that you will get a ready-made binary file in the root directory of the project.

@@ -2,6 +2,7 @@ module main
 
 import math
 import strings
+import os
 
 #flag -I @VMODROOT/thirdparty
 #flag @VMODROOT/thirdparty/qrcodegen.o
@@ -13,6 +14,7 @@ fn C.qrcodegen_getSize(qrcode &u8) int
 
 fn C.qrcodegen_getModule(qrcode &u8, x int, y int) bool
 
+$if !windows {
 #include "librsvg/rsvg.h"
 #include "cairo.h"
 
@@ -61,6 +63,7 @@ fn C.rsvg_handle_render_document(
    viewport &C.RsvgRectangle,   // RsvgRectangle pointer for viewport
    error &&C.GError             // GError double pointer
 ) bool                           // returns gboolean as bool
+}
 
 enum ErrorCorrectionLevel {
 	low = 0 // The QR Code can tolerate about  7% erroneous codewords
@@ -227,7 +230,7 @@ fn (mut qr Qrcode) to_svg(conf &Config) string {
     }
     .octagon {
       container.append_childs(octagon_frame(qr.size))
-    }
+		}
 		.round {
 		  container.append_childs(round_frame(qr.size))
 		}
@@ -297,34 +300,43 @@ fn (mut qr Qrcode) to_svg(conf &Config) string {
 }
 
 fn (mut qr Qrcode) to_image(conf &Config) {
-  svg := qr.to_svg(conf)
-  mut handle := C.rsvg_handle_new_from_data(&char(svg.str), svg.len, C.NULL)
+  $if windows {
+    panic('PNG output not supported on Windows')
+  } $else {
+    svg := qr.to_svg(conf)
+    mut handle := C.rsvg_handle_new_from_data(&char(svg.str), svg.len, C.NULL)
 
-  if handle == C.NULL {
-    panic("could not create RsvgHandle")
+    if handle == C.NULL {
+      panic("could not create RsvgHandle")
+    }
+
+    surface := C.cairo_image_surface_create(0, conf.size, conf.size)
+    cx := C.cairo_create(surface)
+
+    viewport := C.RsvgRectangle{
+      x: 0.0,
+      y: 0.0,
+      width: f64(conf.size),
+      height: f64(conf.size),
+    }
+
+    if !C.rsvg_handle_render_document(handle, cx, &viewport, C.NULL) {
+      panic("could not render image")
+    }
+
+    if C.cairo_surface_write_to_png(surface, conf.output.str) != 0 {
+      panic("could not write output file")
+    }
   }
-
-  surface := C.cairo_image_surface_create(0, conf.size, conf.size)
-  cx := C.cairo_create(surface)
-
-  viewport := C.RsvgRectangle{
-    x: 0.0,
-    y: 0.0,
-    width: f64(conf.size),
-    height: f64(conf.size),
-  }
-
-  if !C.rsvg_handle_render_document(handle, cx, &viewport, C.NULL) {
-		panic("could not render image")
-	}
-
-	if C.cairo_surface_write_to_png(surface, conf.output.str) != 0 {
-		panic("could not write output file")
-	}
 }
 
 fn main() {
   mut config := read_config()
+
+  if config.sensitive && !config.display_anyway && config.output == '' && os.is_atty(1) != 0 {
+    eprintln('Error: For sensitive data, output must be directed to a file using -o or --svg with redirection to avoid displaying on screen. Use --display-anyway to override.')
+    exit(1)
+  }
 
 	mut qrcode := new_qrcode(config.content, config.ecl) or {
     panic('failed to create qrcode')
