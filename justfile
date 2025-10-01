@@ -10,6 +10,10 @@ run *ARGS:
 build:
 	v -cflags "{{CFLAGS}}" -ldflags "{{LDFLAGS}}" -cc gcc -prod -o vqrcode .
 
+# Build for Windows
+build-windows:
+	v -os windows -prod -o vqrcode.exe .
+
 # List available recipes
 help:
 	@just --list
